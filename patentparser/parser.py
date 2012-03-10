@@ -70,6 +70,9 @@ class Parser:
 		pass
 	
 	def abstract(self):
+		# author : ajbharani
+		# article -> front -> abstract
+		# 'abstract'
 		result = ''
 		abstracts = self.dom.getElementsByTagName('abstract')
 		for abstract in abstracts:
