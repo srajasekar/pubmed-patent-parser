@@ -25,7 +25,13 @@ class Parser:
 		# author : ajbharani
 		# article -> body -> sec(recursive) -> p
 		# 'body'
-		pass
+		result = ''
+		bodies = self.dom.getElementsByTagName('body')
+		for body in bodies:
+			ph = ParserHelper()
+			ph.rectext(body,'p')
+			result += ph.rtext
+		return result
 	
 	def titles(self):
 		# author : saran
