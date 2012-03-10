@@ -1,5 +1,23 @@
 from xml.dom.minidom import parse
 
+class ParserHelper:
+	
+	def __init__(self):
+		self.rtext = ''
+	
+	def rectext(self, node, tag):
+		'''It is necessary that we have to probe into an abstract 
+		   recursively and pull out data wherever <p> tag appears'''
+		for tagChild in node.childNodes:
+			if tagChild.nodeName == tag:
+				for pVals in tagChild.childNodes:
+					if pVals.nodeType == 3:
+						self.rtext += pVals.data
+					else:
+						self.rectext(pVals, tag)
+			else:
+				self.rectext(tagChild, tag)
+
 class Parser:
 	
 	def __init__(self, fileName):
@@ -50,17 +68,13 @@ class Parser:
 		# Person:
 		# {'type':'val', 'surname':'val', 'given-names':'val'}
 		pass
-
+	
 	def abstract(self):
-		# author : ajbharani
-		# article -> front -> abstract
-		# 'abstract'
 		result = ''
 		abstracts = self.dom.getElementsByTagName('abstract')
 		for abstract in abstracts:
-			for abstractChild in abstract.childNodes:
-				if abstractChild.nodeName == 'p':
-					for pVals in abstractChild.childNodes:
-						if pVals.nodeType == 3:
-							result = result.join(pVals.data)
+			ph = ParserHelper()
+			ph.rectext(abstract,'p')
+			result += ph.rtext
 		return result
+			
