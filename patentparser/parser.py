@@ -66,7 +66,7 @@ class Parser:
 							refdict = dict()
 							refdict['id'] = ref.getAttribute('id')
 							for refattr in ref.childNodes:
-								if refattr.nodeName == 'element-citation' or refattr.nodeName == 'mixed-citation':
+								if refattr.nodeName.find('citation') != -1:
 									refdict['type'] = refattr.getAttribute('publication-type')
 									for element in refattr.childNodes:
 										if element.nodeName == 'person-group':
