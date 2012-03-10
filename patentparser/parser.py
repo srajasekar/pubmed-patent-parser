@@ -47,6 +47,12 @@ class Parser:
 		# {'type':'val', 'surname':'val', 'given-names':'val'}
 		pass
 	
+	def keywords(self):
+		# author : ajbharani
+		# article -> front -> article-meta -> kwd-group
+		# ['kwd1', 'kwd2]
+		pass
+	
 	def references(self):
 		# author : ajbharani
 		# article -> back -> ref-list -> ref
