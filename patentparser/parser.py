@@ -7,19 +7,13 @@ class Parser:
 		self.fileName = fileName
 		self.dom = parse(self.fileName)
 	
-	def date_format_helper(self,value):
-		prefix = '0'
-		L = list(value)
-		if len(L) < 2:
-			prefix += value
-		return prefix
-	
 	def pubdates(self):
 		# author : saranya
 		# article -> front -> article-meta -> pub-date
 		# [date1, date2]
 		# date:
 		# {'pub-type':'val','pub-date':'mm-dd-yyyy'}
+		ph = ParserHelper()
 		result = []		
 		startTag = self.dom.getElementsByTagName('front')
 		for front in startTag:
@@ -36,11 +30,11 @@ class Parser:
 							for tagsInPubDate in articleMetaTags.childNodes:
 								if tagsInPubDate.nodeName == 'month':
 									month = tagsInPubDate.firstChild.data
-									month = self.date_format_helper(month)
+									month = ph.date_format_helper(month)
 									month += '-'
 								if tagsInPubDate.nodeName == 'day':
 									day = tagsInPubDate.firstChild.data
-									day = self.date_format_helper(day)
+									day = ph.date_format_helper(day)
 									day += '-'
 								if tagsInPubDate.nodeName == 'year':
 									year = tagsInPubDate.firstChild.data
