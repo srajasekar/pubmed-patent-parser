@@ -143,7 +143,16 @@ class Parser:
 		# author : ajbharani
 		# article -> front -> article-meta -> kwd-group
 		# ['kwd1', 'kwd2]
-		pass
+		kwds = []
+		kwdgrps = self.dom.getElementsByTagName('kwd-group')
+		for kwdgrp in kwdgrps:
+			for kwd in kwdgrp.childNodes:
+				if kwd.nodeName == 'kwd':
+					try:
+						kwds.append(kwd.firstChild.data)
+					except AttributeError:
+						continue
+		return kwds
 		
 	def references(self):
 		# author : ajbharani
