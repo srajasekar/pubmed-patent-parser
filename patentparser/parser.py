@@ -29,15 +29,24 @@ class Parser:
 							date['pub-type'] = articleMetaTags.getAttribute('pub-type')
 							for tagsInPubDate in articleMetaTags.childNodes:
 								if tagsInPubDate.nodeName == 'month':
-									month = tagsInPubDate.firstChild.data
+									try:
+										month = tagsInPubDate.firstChild.data
+									except AttributeError:
+										month = '01'
 									month = ph.date_format_helper(month)
 									month += '-'
 								if tagsInPubDate.nodeName == 'day':
-									day = tagsInPubDate.firstChild.data
+									try:
+										day = tagsInPubDate.firstChild.data
+									except AttributeError:
+										day = '01'
 									day = ph.date_format_helper(day)
 									day += '-'
 								if tagsInPubDate.nodeName == 'year':
-									year = tagsInPubDate.firstChild.data
+									try:
+										year = tagsInPubDate.firstChild.data
+									except AttributeError:
+										year = '1900'
 							datestr += month
 							datestr += day
 							datestr += year
@@ -58,7 +67,10 @@ class Parser:
 						if articleMetaTags.nodeName == 'article-id':	
 							articleId = dict()
 							articleId['id-type'] = articleMetaTags.getAttribute('pub-id-type')
-							articleId['id'] = articleMetaTags.firstChild.data
+							try:
+								articleId['id'] = articleMetaTags.firstChild.data
+							except AttributeError:
+								articleId['id'] = None
 							result.append(articleId)
 		return result
 
@@ -87,7 +99,11 @@ class Parser:
 						if titleGroups.nodeName == 'title-group':
 							for articleTitles in titleGroups.childNodes:
 								if articleTitles.nodeName == 'article-title':
-									result.append(articleTitles.firstChild.data)
+									try:
+										_aTitle = articleTitles.firstChild.data
+									except AttributeError:
+										_aTitle = None
+									result.append(_aTitle)
 		return result
 	
 	def contributors(self):
@@ -111,9 +127,15 @@ class Parser:
 										if tagsInContrib.nodeName == 'name':
 											for tagsInName in tagsInContrib.childNodes:
 												if tagsInName.nodeName == 'surname':
-													contributor['surname'] = tagsInName.firstChild.data		
+													try:
+														contributor['surname'] = tagsInName.firstChild.data
+													except AttributeError:
+														contributor['surname'] = None	
 												if tagsInName.nodeName == 'given-names':
-													contributor['given-names'] = tagsInName.firstChild.data
+													try:
+														contributor['given-names'] = tagsInName.firstChild.data
+													except AttributeError:
+														contributor['given-names'] = None
 											result.append(contributor)
 		return result
 	
@@ -154,20 +176,38 @@ class Parser:
 													personDict['type'] = grptype
 													for name in person.childNodes:
 														if name.nodeName == 'surname':
-															personDict['surname'] = name.firstChild.data
+															try:
+																personDict['surname'] = name.firstChild.data
+															except AttributeError:
+																personDict['surname'] = None
 														elif name.nodeName == 'given-names':
-															personDict['given-names'] = name.firstChild.data
+															try:
+																personDict['given-names'] = name.firstChild.data
+															except AttributeError:
+																personDict['given-names'] = None
 													personDictList.append(personDict)
 											refdict['person-list'] = personDictList	
 										elif element.nodeName == 'source':
-											refdict['source'] = element.firstChild.data
+											try:
+												refdict['source'] = element.firstChild.data
+											except AttributeError:
+												refdict['source'] = None
 										elif element.nodeName == 'article-title':
-											refdict['article-title'] = element.firstChild.data
+											try:
+												refdict['article-title'] = element.firstChild.data
+											except AttributeError:
+												refdict['article-title'] = None
 										elif element.nodeName == 'year':
-											refdict['year'] = element.firstChild.data
+											try:
+												refdict['year'] = element.firstChild.data
+											except AttributeError:
+												refdict['year'] = None
 										elif element.nodeName == 'pub-id':
 											refdict['pub-id-type'] = element.getAttribute('pub-id-type')
-											refdict['pub-id'] = element.firstChild.data						
+											try:
+												refdict['pub-id'] = element.firstChild.data
+											except AttributeError:
+												refdict['pub-id'] = None					
 							refs.append(refdict)
 		return refs
 	
