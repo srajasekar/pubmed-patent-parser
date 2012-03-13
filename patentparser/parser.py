@@ -12,7 +12,7 @@ class Parser:
 		# article -> front -> article-meta -> pub-date
 		# [date1, date2]
 		# date:
-		# {'pub-type':'val','pub-date':'mm-dd-yyyy'}
+		# {'pub-type':'val','pub-date':'yyyy-mm-dd'}
 		ph = ParserHelper()
 		result = []		
 		startTag = self.dom.getElementsByTagName('front')
@@ -47,9 +47,9 @@ class Parser:
 										year = tagsInPubDate.firstChild.data
 									except AttributeError:
 										year = '1900'
-							datestr += month
-							datestr += day
 							datestr += year
+							datestr += month
+							datestr += date
 							date['pub-date'] = datestr
 							result.append(date)
 		return result
