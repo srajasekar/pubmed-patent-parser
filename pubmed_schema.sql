@@ -1,3 +1,5 @@
+-- author : ajbharani
+-- author : saran
 -- pubmed_Article(Id, Abstract, Body)
 create table pubmed_Article(
     Id integer not null auto_increment,
