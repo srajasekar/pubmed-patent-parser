@@ -5,7 +5,7 @@ import MySQLdb
 from patentparser.parser import Parser
 
 class LoadDocuments:
-	def __init__(self, doc_list, sql_host, sql_user, sql_password, sql_db, batch_size):
+	def __init__(self, doc_list, sql_host, sql_user, sql_password, sql_db):
 		# author : ajbharani
 		# constructor
 		self.doc_list = doc_list
@@ -13,7 +13,6 @@ class LoadDocuments:
 		self.sql_user = sql_user
 		self.sql_password = sql_password
 		self.sql_db = sql_db
-		self.batch_size = batch_size
 	
 	def push_documents(self, contents):
 		# author : ajbharani
@@ -106,5 +105,5 @@ class LoadDocuments:
 		return result
 
 if __name__ == '__main__':
-	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test', 100)
+	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test')
 	print ld._getTitles('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		
