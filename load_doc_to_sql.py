@@ -2,6 +2,7 @@
 # author : saran
 
 import MySQLdb
+import unicodedata
 from patentparser.parser import Parser
 from datetime import datetime
 
@@ -20,25 +21,31 @@ class DocumentLoader:
 		contents = []
 		for doc in self.doc_list:
 			content = []
-			content[0] = self._getArticleIds(doc)
-			content[1] = self._getArticleKeywords(doc)
-			content[2] = self._getAbstract(doc)
-			content[3] = self._getBody(doc)
-			content[4] = self._getPubDate(doc)
+			content.append(self._getArticleIds(doc))
+			content.append(self._getArticleKeywords(doc))
+			content.append(self._getAbstract(doc))
+			content.append(self._getBody(doc))
+			content.append(self._getPubDate(doc))
 			contents.append(content)
 		self._push_contents(contents)
+
+	def is_ascii(self, s):
+		return all(ord(c) < 128 for c in s)
 	
 	def _validateAndQuote(self, string_to_validate):
 		# author : ajbharani
+		if self.is_ascii(string_to_validate) == False:
+			string_to_validate = unicodedata.normalize('NFKD', string_to_validate).encode('ascii', 'ignore')
+		string_to_validate = string_to_validate.replace("'", "''")
 		if string_to_validate == '':
 			string_to_validate = 'NULL'
 		else:
-			string_to_validate = "'" + string_to_validate + "'"
+			string_to_validate = "'" + str(string_to_validate) + "'"
 		return string_to_validate
 	
 	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):
 		
-		articleIds = self._validateAndQuote(articleIds)
+		articleIds = self._validateAndQuote(str(articleIds))
 		
 		keywords = ''
 		for articleKeyword in articleKeywords:
@@ -83,11 +90,13 @@ class DocumentLoader:
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
 		# "RefContributor": [{ContribType, Surname, GivenNames}, ...]
 		for content in contents:
-			articleQuery = self._getInsertArticleQuery(content[0], content[1], content[2], conten[3], content[4])
+			articleQuery = self._getInsertArticleQuery(content[0], content[1], content[2], content[3], content[4])
 			conn = MySQLdb.connect(self.sql_host, self.sql_user, self.sql_password, self.sql_db)
 			cur = conn.cursor()
 			cur.execute(articleQuery)
-			articleId = cur.insert_id()
+			articleId = conn.insert_id()
+			conn.commit()
+			conn.close()
 			print articleId
 	
 	def _getArticleIds(self, filename):
