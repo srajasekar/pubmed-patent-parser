@@ -17,21 +17,29 @@ class DocumentLoader:
 		self.sql_password = sql_password
 		self.sql_db = sql_db
 	
-	def loadDocuments(self):
+	def loadDocuments(self, log_file):
 		# author : ajbharani
-		contents = []
-		for doc in self.doc_list:
-			content = []
-			content.append(self._getArticleIds(doc))
-			content.append(self._getArticleKeywords(doc))
-			content.append(self._getAbstract(doc))
-			content.append(self._getBody(doc))
-			content.append(self._getPubDate(doc))
-			content.append(self._getTitles(doc))
-			content.append(self._getContributors(doc))
-			content.append(self._getReferences(doc))
-			contents.append(content)
-		self._push_contents(contents)
+		try:
+			contents = []
+			for doc in self.doc_list:
+				content = []
+				content.append(self._getArticleIds(doc))
+				content.append(self._getArticleKeywords(doc))
+				content.append(self._getAbstract(doc))
+				content.append(self._getBody(doc))
+				content.append(self._getPubDate(doc))
+				content.append(self._getTitles(doc))
+				content.append(self._getContributors(doc))
+				content.append(self._getReferences(doc))
+				contents.append(content)
+			self._push_contents(contents)
+		except:
+			print 'Exception while parsing.'
+			f = open(log_file, 'a')
+			f.write('Error while parsing. Batch below\n')
+			for doc in self.doc_list:
+				f.write(doc + '\n')
+			f.close()
 
 	def _is_ascii(self, s):
 		# author : ajbharani
@@ -276,9 +284,13 @@ class DocumentLoader:
 		return result
 
 if __name__ == '__main__':
+	log_file = 'load_log.txt'
+	open(log_file, 'w').close()
 	f = open('../../xml_file_list.txt')
 	total_files = len(f.readlines())
 	f.close()
+	
+	ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
 	count = 0
 	batch_count = 0
 	total_batch = (total_files / 100) + 1
@@ -295,10 +307,10 @@ if __name__ == '__main__':
 					batch_count += 1
 					print "Running batch " + str(batch_count) + " of " + str(total_batch)
 					ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
-					ld.loadDocuments()
+					ld.loadDocuments(log_file)
 					file_list = []
 	print "Running batch " + str(batch_count) + " of " + str(total_batch)
 	ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
-	ld.loadDocuments()
+	ld.loadDocuments(log_file)
 	file_list = []
 				
