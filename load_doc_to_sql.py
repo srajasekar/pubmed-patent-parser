@@ -26,15 +26,16 @@ class DocumentLoader:
 			content.append(self._getAbstract(doc))
 			content.append(self._getBody(doc))
 			content.append(self._getPubDate(doc))
+			content.append(self._getTitles(doc))
 			contents.append(content)
 		self._push_contents(contents)
 
-	def is_ascii(self, s):
+	def _is_ascii(self, s):
 		return all(ord(c) < 128 for c in s)
 	
 	def _validateAndQuote(self, string_to_validate):
 		# author : ajbharani
-		if self.is_ascii(string_to_validate) == False:
+		if self._is_ascii(string_to_validate) == False:
 			string_to_validate = unicodedata.normalize('NFKD', string_to_validate).encode('ascii', 'ignore')
 		string_to_validate = string_to_validate.replace("'", "''")
 		if string_to_validate == '':
@@ -43,8 +44,7 @@ class DocumentLoader:
 			string_to_validate = "'" + str(string_to_validate) + "'"
 		return string_to_validate
 	
-	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):
-		
+	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):		
 		articleIds = self._validateAndQuote(str(articleIds))
 		
 		keywords = ''
@@ -78,6 +78,19 @@ class DocumentLoader:
 		
 		return query
 	
+	def _getInsertArticleTitleQueries(self, articleId, titles):
+		result = []
+		for title in titles:
+			_title = ''
+			tit = title.get('Title', None)
+			if tit != None:
+				_title = tit
+			_title = self._validateAndQuote(_title)
+			query = '''insert into pubmed_Title(ArticleId, Title) values
+				(%d, %s)''' % (articleId, _title)
+			result.append(query)
+		return result
+	
 	def _push_contents(self, contents):
 		# author : ajbharani
 		# method to push contents into the DB
@@ -95,9 +108,11 @@ class DocumentLoader:
 			cur = conn.cursor()
 			cur.execute(articleQuery)
 			articleId = conn.insert_id()
+			articleTitleQueries = self._getInsertArticleTitleQueries(articleId, content[5])
+			for articleTitleQuery in articleTitleQueries:
+				cur.execute(articleTitleQuery)
 			conn.commit()
 			conn.close()
-			print articleId
 	
 	def _getArticleIds(self, filename):
 		# author : saran
@@ -156,9 +171,7 @@ class DocumentLoader:
 			dates.append(date_object)
 		max_date = max(dates)
 		result['PubDate'] = max_date.strftime('%Y-%m-%d')
-		return result
-		
-		
+		return result		
 	
 	def _getTitles(self, filename):
 		# author : ajbharani
@@ -216,4 +229,4 @@ class DocumentLoader:
 
 if __name__ == '__main__':
 	ld = DocumentLoader(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test')
-	print ld.loadDocuments()
+	ld.loadDocuments()
