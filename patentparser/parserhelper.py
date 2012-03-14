@@ -20,7 +20,8 @@ class ParserHelper:
 	def date_format_helper(self,value):
 		# author : saran
 		prefix = '0'
-		L = list(value)
-		if len(L) < 2:
+		if len(value) < 2:
 			prefix += value
-		return prefix
+			return prefix
+		else:
+			return value

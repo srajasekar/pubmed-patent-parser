@@ -3,6 +3,7 @@
 
 import MySQLdb
 import unicodedata
+import os
 from patentparser.parser import Parser
 from datetime import datetime
 
@@ -275,10 +276,29 @@ class DocumentLoader:
 		return result
 
 if __name__ == '__main__':
-	docList = ['/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.O-Z/Zookeys/Zookeys_2011_Jun_22_(111)_33-40.xml',
-		'/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.O-Z/Xenobiotica/Xenobiotica_2011_Dec_23_41(12)_1063-1075.xml',
-		'AAPS_J_2008_Feb_8_10(1)_120-132.xml',
-		'/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.I-N/J_Ovarian_Res/J_Ovarian_Res_2008_Oct_20_1_6.xml']
-	
-	ld = DocumentLoader(docList, 'localhost', 'bharani', '', 'test')
+	f = open('../../xml_file_list.txt')
+	total_files = len(f.readlines())
+	f.close()
+	count = 0
+	batch_count = 0
+	total_batch = (total_files / 100) + 1
+	doc_path = '/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus'
+	file_list = []
+	for root, dirs, files in os.walk(doc_path):
+		for val in files:
+			if val.find('.xml') != -1:
+				count += 1
+				file_name = root + '/' + val
+				print '' + str(count) + ' of ' + str(total_files) + ' : ' + file_name
+				file_list.append(file_name)
+				if(len(file_list) >= 100):
+					batch_count += 1
+					print "Running batch " + str(batch_count) + " of " + str(total_batch)
+					ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
+					ld.loadDocuments()
+					file_list = []
+	print "Running batch " + str(batch_count) + " of " + str(total_batch)
+	ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
 	ld.loadDocuments()
+	file_list = []
+				

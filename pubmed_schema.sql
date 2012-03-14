@@ -21,9 +21,9 @@ create table pubmed_Title (
 -- pubmed_Contributor(ArtilceId, ContribType, Surname, GivenNames)
 create table pubmed_Contributor (
     ArticleId integer not null,
-    ContribType varchar(32),
-    Surname varchar(256),
-    GivenNames varchar(256),
+    ContribType varchar(2048),
+    Surname varchar(2048),
+    GivenNames varchar(2048),
     constraint CONTRIBFK1 foreign key(ArticleId) references pubmed_Article(Id)
 );
 
@@ -42,13 +42,13 @@ create table pubmed_NgramKeyword (
 create table pubmed_Reference (
     Id integer not null auto_increment,
     ArticleId integer not null,    
-    RefId varchar(32),
-    RefType varchar(32),
-    Source varchar(256),
+    RefId varchar(2048),
+    RefType varchar(2048),
+    Source varchar(2048),
     Title long varchar,
-    PubYear integer,
-    PubIdType varchar(32),
-    PubId varchar(32),
+    PubYear varchar(2048),
+    PubIdType varchar(2048),
+    PubId varchar(2048),
     constraint REFPK1 primary key(Id),
     constraint REFFK1 foreign key(ArticleId) references pubmed_Article(Id)
 );
@@ -56,8 +56,8 @@ create table pubmed_Reference (
 -- pubmed_RefContributor(Id, ContribType, Surname, GivenNames)
 create table pubmed_RefContributor (
     RefId integer not null,
-    ContribType varchar(32),
-    Surname varchar(256),
-    GivenNames varchar(256),
+    ContribType varchar(2048),
+    Surname varchar(2048),
+    GivenNames varchar(2048),
     constraint REFCONTRIBFK1 foreign key(RefId) references pubmed_Reference(Id)
 );
