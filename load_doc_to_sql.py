@@ -33,6 +33,7 @@ class DocumentLoader:
 		self._push_contents(contents)
 
 	def _is_ascii(self, s):
+		# author : ajbharani
 		return all(ord(c) < 128 for c in s)
 	
 	def _validateAndQuote(self, string_to_validate):
@@ -48,7 +49,8 @@ class DocumentLoader:
 			string_to_validate = "'" + str(string_to_validate) + "'"
 		return string_to_validate
 	
-	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):		
+	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):
+		# author : ajbharani
 		articleIds = self._validateAndQuote(str(articleIds))
 		
 		keywords = ''
@@ -74,6 +76,7 @@ class DocumentLoader:
 		return query
 	
 	def _getInsertArticleTitleQueries(self, articleId, titles):
+		# author : ajbharani
 		result = []
 		for title in titles:
 			_title = title.get('Title', '')
@@ -84,6 +87,7 @@ class DocumentLoader:
 		return result
 
 	def _getInsertContributorQueries(self, articleId, contributors):
+		# author : ajbharani
 		result = []
 		for contributor in contributors:
 			_type = self._validateAndQuote(contributor.get('ContribType', ''))
@@ -91,6 +95,36 @@ class DocumentLoader:
 			_given_names = self._validateAndQuote(contributor.get('GivenNames', ''))
 			query = '''insert into pubmed_Contributor(ArticleId, ContribType, Surname, GivenNames) values
 				(%d, %s, %s, %s)''' % (articleId, _type, _surname, _given_names)
+			result.append(query)
+		return result
+	
+	def _getInsertReferenceQueries(self, articleId, references):
+		# author : ajbharani
+		result = []
+		for reference in references:
+			_refid = self._validateAndQuote(reference.get('RefId', ''))
+			_reftype = self._validateAndQuote(reference.get('RefType', ''))
+			_source = self._validateAndQuote(reference.get('Source', ''))
+			_title = self._validateAndQuote(reference.get('Title', ''))
+			_pubyear = self._validateAndQuote(reference.get('PubYear', ''))
+			_pubidtype = self._validateAndQuote(reference.get('PubIdType', ''))
+			_pubid = self._validateAndQuote(reference.get('PubId', ''))
+			query = '''insert into pubmed_Reference(ArticleId, RefId, RefType, Source, Title, PubYear, PubIdType, PubId)
+				values(%d, %s, %s, %s, %s, %s, %s, %s)''' % (articleId, _refid, _reftype, _source, _title, _pubyear, 
+					_pubidtype, _pubid)
+			contributors = reference.get('RefContributor', [])
+			result.append((query, contributors))
+		return result
+	
+	def _getInsertRefContributorQueries(self, referenceId, contributors):
+		# author : ajbharani
+		result = []
+		for contributor in contributors:
+			_type = self._validateAndQuote(contributor.get('ContribType', ''))
+			_surname = self._validateAndQuote(contributor.get('Surname', ''))
+			_given_names = self._validateAndQuote(contributor.get('GivenNames', ''))
+			query = '''insert into pubmed_RefContributor(RefId, ContribType, Surname, GivenNames) values
+				(%d, %s, %s, %s)''' % (referenceId, _type, _surname, _given_names)
 			result.append(query)
 		return result
 	
@@ -117,6 +151,13 @@ class DocumentLoader:
 			contributorQueries = self._getInsertContributorQueries(articleId, content[6])
 			for contributorQuery in contributorQueries:
 				cur.execute(contributorQuery)
+			referenceQueries = self._getInsertReferenceQueries(articleId, content[7])
+			for referenceQuery, contributors in referenceQueries:
+				cur.execute(referenceQuery)
+				referenceId = conn.insert_id()
+				refContributorQueries = self._getInsertRefContributorQueries(referenceId, contributors)
+				for refContributorQuery in refContributorQueries:
+					cur.execute(refContributorQuery)
 			conn.commit()
 			conn.close()
 	
@@ -172,8 +213,8 @@ class DocumentLoader:
 		dates = []
 		result = dict()
 		for pubdate in pubdates:
-			date =  pubdate.get('pub-date',None)
-			date_object = datetime.strptime(date,'%Y-%m-%d')
+			date =  pubdate.get('pub-date', None)
+			date_object = datetime.strptime(date, '%Y-%m-%d')
 			dates.append(date_object)
 		max_date = max(dates)
 		result['PubDate'] = max_date.strftime('%Y-%m-%d')
@@ -234,5 +275,10 @@ class DocumentLoader:
 		return result
 
 if __name__ == '__main__':
-	ld = DocumentLoader(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test')
+	docList = ['/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.O-Z/Zookeys/Zookeys_2011_Jun_22_(111)_33-40.xml',
+		'/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.O-Z/Xenobiotica/Xenobiotica_2011_Dec_23_41(12)_1063-1075.xml',
+		'AAPS_J_2008_Feb_8_10(1)_120-132.xml',
+		'/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus/articles.I-N/J_Ovarian_Res/J_Ovarian_Res_2008_Oct_20_1_6.xml']
+	
+	ld = DocumentLoader(docList, 'localhost', 'bharani', '', 'test')
 	ld.loadDocuments()
