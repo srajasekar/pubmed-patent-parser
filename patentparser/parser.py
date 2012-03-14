@@ -23,9 +23,9 @@ class Parser:
 						if articleMetaTags.nodeName == 'pub-date':
 							date = dict()
 							datestr = '' 
-							month = '01-'
-							day = '01-'
-							year = ''
+							month = '01'
+							day = '01'
+							year = '1900'
 							date['pub-type'] = articleMetaTags.getAttribute('pub-type')
 							for tagsInPubDate in articleMetaTags.childNodes:
 								if tagsInPubDate.nodeName == 'month':
@@ -34,22 +34,20 @@ class Parser:
 									except AttributeError:
 										month = '01'
 									month = ph.date_format_helper(month)
-									month += '-'
 								if tagsInPubDate.nodeName == 'day':
 									try:
 										day = tagsInPubDate.firstChild.data
 									except AttributeError:
 										day = '01'
 									day = ph.date_format_helper(day)
-									day += '-'
 								if tagsInPubDate.nodeName == 'year':
 									try:
 										year = tagsInPubDate.firstChild.data
 									except AttributeError:
 										year = '1900'
-							datestr += year
-							datestr += month
-							datestr += date
+							datestr += year + '-'
+							datestr += month + '-'
+							datestr += day
 							date['pub-date'] = datestr
 							result.append(date)
 		return result

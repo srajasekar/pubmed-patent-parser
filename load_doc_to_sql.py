@@ -3,6 +3,7 @@
 
 import MySQLdb
 from patentparser.parser import Parser
+from datetime import datetime
 
 class LoadDocuments:
 	def __init__(self, doc_list, sql_host, sql_user, sql_password, sql_db, batch_size):
@@ -30,26 +31,64 @@ class LoadDocuments:
 	
 	def _getArticleIds(self, filename):
 		# author : saran
-		# "ArticleIds": [{IdType, Id}, ...]
-		pass
+		# "ArticleIds": [{IdType, Id},{IdType, Id}, ...]
+		p = Parser(filename)
+		articleIDs = p.ids()
+		result = []
+		for articleID in articleIDs:
+			entry = dict()
+			entry['IdType'] = articleID.get('id-type', None)
+			entry['Id'] = articleID.get('id', None)
+			result.append(entry)
+		return result
 	
 	def _getArticleKeywords(self, filename):
 		# author : saran
-		# "ArticleKeywords" : [KW1, KW2, ...]
-		pass
+		# Returns : [{ArticleKeywords: 'KW1'},{ArticleKeywords: 'KW2'}, ...]
+		p = Parser(filename)
+		keywords = p.keywords()
+		result = []
+		for keyword in keywords:
+			entry = dict()
+			entry['ArticleKeywords'] = keyword
+			result.append(entry)
+		return result
 	
 	def _getAbstract(self, filename):
 		# author : saran
-		pass
+		# Returns {Abstract:'abstract of the patent'}
+		p = Parser(filename)
+		abstract = p.abstract()
+		result = dict()
+		result['Abstract'] = abstract
+		return result
 	
 	def _getBody(self, filename):
 		# author : saran
-		pass
+		# Returns {Body:'body of the patent'}
+		p = Parser(filename)
+		body = p.body()
+		result = dict()
+		result['Body'] = body
+		return result
 	
 	def _getPubDate(self, filename):
 		# author : saran
 		# Earliest publish date of the form YYYY-MM-DD
-		pass
+		# Returns: {PubDate:'Earliest publish date of the form YYYY-MM-DD'}
+		p = Parser(filename)
+		pubdates = p.pubdates()
+		dates = []
+		result = dict()
+		for pubdate in pubdates:
+			date =  pubdate.get('pub-date',None)
+			date_object = datetime.strptime(date,'%Y-%m-%d')
+			dates.append(date_object)
+		max_date = max(dates)
+		result['PubDate'] = max_date.strftime('%Y-%m-%d')
+		return result
+		
+		
 	
 	def _getTitles(self, filename):
 		# author : ajbharani
@@ -82,4 +121,9 @@ class LoadDocuments:
 
 if __name__ == '__main__':
 	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test', 100)
-	print ld._getContributors('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		
+	print ld._getContributors('AAPS_J_2008_Feb_8_10(1)_120-132.xml')	
+	print ld._getAbstract('AAPS_J_2008_Feb_8_10(1)_120-132.xml')
+	print ld._getBody('AAPS_J_2008_Feb_8_10(1)_120-132.xml')	
+	print ld._getArticleIds('AAPS_J_2008_Feb_8_10(1)_120-132.xml')
+	print ld._getArticleKeywords('AAPS_J_2008_Feb_8_10(1)_120-132.xml')
+	print ld._getPubDate('AAPS_J_2008_Feb_8_10(1)_120-132.xml')
