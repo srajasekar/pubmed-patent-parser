@@ -2,19 +2,20 @@
 # author : saran
 
 import MySQLdb
+from patentparser.parser import Parser
 
 class LoadDocuments:
-	def __init__(self, doc_path, sql_host, sql_user, sql_password, sql_db, batch_size):
+	def __init__(self, doc_list, sql_host, sql_user, sql_password, sql_db, batch_size):
 		# author : ajbharani
 		# constructor
-		self.doc_path = doc_path
+		self.doc_list = doc_list
 		self.sql_host = sql_host
 		self.sql_user = sql_user
 		self.sql_password = sql_password
 		self.sql_db = sql_db
 		self.batch_size = batch_size
 	
-	def push_documents(self, docs):
+	def push_documents(self, contents):
 		# author : ajbharani
 		# method to push a document batch into the DB
 		# "docs": [{[ArticleIds], [ArticleKeywords], Abstract, Body, PubDate, [Titles], 
@@ -22,7 +23,7 @@ class LoadDocuments:
 		# "ArticleKeywords" : [KW1, KW2, ...]
 		# "ArticleIds": [{IdType, Id}, ...]
 		# "Titles": [Title1, Title2, ...]
-		# "Contributors": [{ContribType, Surname, GiveNames}, ...]
+		# "Contributors": [{ContribType, Surname, GivenNames}, ...]
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
 		# "Ref_Contributors": [{ContribType, Surname, GivenNames}, ...]
 		pass
@@ -57,8 +58,17 @@ class LoadDocuments:
 	
 	def _getContributors(self, filename):
 		# author : ajbharani
-		# "Contributors": [{ContribType, Surname, GiveNames}, ...]
-		pass
+		# "Contributors": [{ContribType, Surname, GivenNames}, ...]
+		p = Parser(filename)
+		contributors = p.contributors()
+		result = []
+		for contributor in contributors:
+			entry = dict()
+			entry['ContribType'] = contributor.get('type', None)
+			entry['Surname'] = contributor.get('surname', None)
+			entry['GivenNames'] = contributor.get('GivenNames', None)
+			result.append(entry)
+		return result
 	
 	def _getReferences(self, filename):
 		# author : ajbharani
@@ -71,4 +81,5 @@ class LoadDocuments:
 		pass
 
 if __name__ == '__main__':
-	pass		
+	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test', 100)
+	print ld._getContributors('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		

@@ -20,11 +20,11 @@ create table pubmed_Title (
 
 -- pubmed_Contributor(ArtilceId, ContribType, Surname, GivenNames)
 create table pubmed_Contributor (
-    ArtilceId integer not null,
+    Article integer not null,
     ContribType varchar(32),
     Surname varchar(256),
     GivenNames varchar(256),
-    constraint CONTRIBFK1 foreign key(ArtilceId) references pubmed_Article(Id)
+    constraint CONTRIBFK1 foreign key(Article) references pubmed_Article(Id)
 );
 
 -- pubmed_Keyword(ArtilceId, Keyword)
