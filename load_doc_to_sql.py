@@ -19,13 +19,13 @@ class LoadDocuments:
 		# author : ajbharani
 		# method to push a document batch into the DB
 		# "docs": [{[ArticleIds], [ArticleKeywords], Abstract, Body, PubDate, [Titles], 
-		#	[Contributors], [References], [Ref_Contributors]}, ...]
+		#	[Contributors], [{References, Ref_Contributors}]}, ...]
 		# "ArticleKeywords" : [KW1, KW2, ...]
 		# "ArticleIds": [{IdType, Id}, ...]
 		# "Titles": [Title1, Title2, ...]
 		# "Contributors": [{ContribType, Surname, GivenNames}, ...]
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
-		# "Ref_Contributors": [{ContribType, Surname, GivenNames}, ...]
+		# "RefContributor": [{ContribType, Surname, GivenNames}, ...]
 		pass
 	
 	def _getArticleIds(self, filename):
@@ -62,37 +62,44 @@ class LoadDocuments:
 		p = Parser(filename)
 		contributors = p.contributors()
 		result = []
-		for contributor in contributors:
-			entry = dict()
-			entry['ContribType'] = contributor.get('type', None)
-			entry['Surname'] = contributor.get('surname', None)
-			entry['GivenNames'] = contributor.get('GivenNames', None)
-			result.append(entry)
+		if contributors != None:
+			for contributor in contributors:
+				entry = dict()
+				entry['ContribType'] = contributor.get('type', None)
+				entry['Surname'] = contributor.get('surname', None)
+				entry['GivenNames'] = contributor.get('GivenNames', None)
+				result.append(entry)
 		return result
 	
 	def _getReferences(self, filename):
 		# author : ajbharani
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
+		# "RefContributor": [{ContribType, Surname, GivenNames}, ...]
 		p = Parser(filename)
 		references = p.references()
 		result = []
-		for reference in references:
-			entry = dict()
-			entry['RefId'] = reference.get('id', None)
-			entry['RefType'] = reference.get('type', None)
-			entry['Source'] = reference.get('source', None)
-			entry['Title'] = reference.get('article-title', None)
-			entry['PubYear'] = reference.get('year', None)
-			entry['PubIdType'] = reference.get('pub-id-type', None)
-			entry['PubId'] = reference.get('pub-id', None)
-			result.append(entry)
+		if references != None:
+			for reference in references:
+				entry = dict()
+				entry['RefId'] = reference.get('id', None)
+				entry['RefType'] = reference.get('type', None)
+				entry['Source'] = reference.get('source', None)
+				entry['Title'] = reference.get('article-title', None)
+				entry['PubYear'] = reference.get('year', None)
+				entry['PubIdType'] = reference.get('pub-id-type', None)
+				entry['PubId'] = reference.get('pub-id', None)
+				contributors = reference.get('person-list', None)
+				entry['RefContributor'] = []
+				if contributors != None:
+					for contributor in contributors:
+						person = dict()
+						person['ContribType'] = contributor.get('type', None)
+						person['Surname'] = contributor.get('surname', None)
+						person['GivenNames'] = contributor.get('given-names', None)
+						entry['RefContributor'].append(person)
+				result.append(entry)
 		return result
-	
-	def _getRefContributors(self, filename):
-		# author : ajbharani
-		# "Ref_Contributors": [{ContribType, Surname, GivenNames}, ...]
-		pass
 
 if __name__ == '__main__':
 	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test', 100)
-	print ld._getContributors('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		
+	print ld._getReferences('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		
