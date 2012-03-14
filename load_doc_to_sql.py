@@ -4,7 +4,7 @@
 import MySQLdb
 from patentparser.parser import Parser
 
-class LoadDocuments:
+class DocumentLoader:
 	def __init__(self, doc_list, sql_host, sql_user, sql_password, sql_db):
 		# author : ajbharani
 		# constructor
@@ -14,10 +14,66 @@ class LoadDocuments:
 		self.sql_password = sql_password
 		self.sql_db = sql_db
 	
-	def push_documents(self, contents):
+	def loadDocuments(self):
 		# author : ajbharani
-		# method to push a document batch into the DB
-		# "docs": [{[ArticleIds], [ArticleKeywords], Abstract, Body, PubDate, [Titles], 
+		contents = []
+		for doc in self.doc_list:
+			content = []
+			content[0] = self._getArticleIds(doc)
+			content[1] = self._getArticleKeywords(doc)
+			content[2] = self._getAbstract(doc)
+			content[3] = self._getBody(doc)
+			content[4] = self._getPubDate(doc)
+			contents.append(content)
+		self._push_contents(contents)
+	
+	def _validateAndQuote(self, string_to_validate):
+		# author : ajbharani
+		if string_to_validate == '':
+			string_to_validate = 'NULL'
+		else:
+			string_to_validate = "'" + string_to_validate + "'"
+		return string_to_validate
+	
+	def _getInsertArticleQuery(self, articleIds, articleKeywords, abstract, body, pubDate):
+		
+		articleIds = self._validateAndQuote(articleIds)
+		
+		keywords = ''
+		for articleKeyword in articleKeywords:
+			ak = articleKeyword.get('ArticleKeywords', None)
+			if(ak != None):
+				keywords += ak + ','
+		keywords = keywords[:len(keywords) - 1] # to remove the trailing comma
+		keywords = self._validateAndQuote(keywords)
+		
+		_abstract = ''
+		abs = abstract.get('Abstract', None)
+		if abs != None:
+			_abstract = abs
+		_abstract = self._validateAndQuote(_abstract)
+		
+		_body = ''
+		bdy = body.get('Body', None)
+		if bdy != None:
+			_body = bdy
+		_body = self._validateAndQuote(_body)
+		
+		_pubDate = ''
+		pd = pubDate.get('PubDate', None)
+		if pd != None:
+			_pubDate = pd
+		_pubDate = self._validateAndQuote(_pubDate)
+		
+		query = '''insert into pubmed_Article(ArticleIds, ArticleKeywords, Abstract, Body, PubDate) values 
+			(%s, %s, %s, %s, %s)''' % (articleIds, keywords, _abstract, _body, _pubDate)
+		
+		return query
+	
+	def _push_contents(self, contents):
+		# author : ajbharani
+		# method to push contents into the DB
+		# "contents": [{[ArticleIds], [ArticleKeywords], Abstract, Body, PubDate, [Titles], 
 		#	[Contributors], [{References, Ref_Contributors}]}, ...]
 		# "ArticleKeywords" : [KW1, KW2, ...]
 		# "ArticleIds": [{IdType, Id}, ...]
@@ -25,7 +81,13 @@ class LoadDocuments:
 		# "Contributors": [{ContribType, Surname, GivenNames}, ...]
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
 		# "RefContributor": [{ContribType, Surname, GivenNames}, ...]
-		pass
+		for content in contents:
+			articleQuery = self._getInsertArticleQuery(content[0], content[1], content[2], conten[3], content[4])
+			conn = MySQLdb.connect(self.sql_host, self.sql_user, self.sql_password, self.sql_db)
+			cur = conn.cursor()
+			cur.execute(articleQuery)
+			articleId = cur.insert_id()
+			print articleId
 	
 	def _getArticleIds(self, filename):
 		# author : saran
@@ -105,5 +167,5 @@ class LoadDocuments:
 		return result
 
 if __name__ == '__main__':
-	ld = LoadDocuments(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test')
-	print ld._getTitles('AAPS_J_2008_Feb_8_10(1)_120-132.xml')		
+	ld = DocumentLoader(['AAPS_J_2008_Feb_8_10(1)_120-132.xml'], 'localhost', 'bharani', '', 'test')
+	print ld.loadDocuments()	
