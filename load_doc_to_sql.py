@@ -73,7 +73,20 @@ class LoadDocuments:
 	def _getReferences(self, filename):
 		# author : ajbharani
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
-		pass
+		p = Parser(filename)
+		references = p.references()
+		result = []
+		for reference in references:
+			entry = dict()
+			entry['RefId'] = reference.get('id', None)
+			entry['RefType'] = reference.get('type', None)
+			entry['Source'] = reference.get('source', None)
+			entry['Title'] = reference.get('article-title', None)
+			entry['PubYear'] = reference.get('year', None)
+			entry['PubIdType'] = reference.get('pub-id-type', None)
+			entry['PubId'] = reference.get('pub-id', None)
+			result.append(entry)
+		return result
 	
 	def _getRefContributors(self, filename):
 		# author : ajbharani
