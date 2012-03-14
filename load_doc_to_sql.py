@@ -27,6 +27,8 @@ class DocumentLoader:
 			content.append(self._getBody(doc))
 			content.append(self._getPubDate(doc))
 			content.append(self._getTitles(doc))
+			content.append(self._getContributors(doc))
+			content.append(self._getReferences(doc))
 			contents.append(content)
 		self._push_contents(contents)
 
@@ -35,6 +37,8 @@ class DocumentLoader:
 	
 	def _validateAndQuote(self, string_to_validate):
 		# author : ajbharani
+		if string_to_validate == None:
+			string_to_validate = ''
 		if self._is_ascii(string_to_validate) == False:
 			string_to_validate = unicodedata.normalize('NFKD', string_to_validate).encode('ascii', 'ignore')
 		string_to_validate = string_to_validate.replace("'", "''")
@@ -55,22 +59,13 @@ class DocumentLoader:
 		keywords = keywords[:len(keywords) - 1] # to remove the trailing comma
 		keywords = self._validateAndQuote(keywords)
 		
-		_abstract = ''
-		abs = abstract.get('Abstract', None)
-		if abs != None:
-			_abstract = abs
+		_abstract = abstract.get('Abstract', '')
 		_abstract = self._validateAndQuote(_abstract)
 		
-		_body = ''
-		bdy = body.get('Body', None)
-		if bdy != None:
-			_body = bdy
+		_body = body.get('Body', '')
 		_body = self._validateAndQuote(_body)
 		
-		_pubDate = ''
-		pd = pubDate.get('PubDate', None)
-		if pd != None:
-			_pubDate = pd
+		_pubDate = pubDate.get('PubDate', '')
 		_pubDate = self._validateAndQuote(_pubDate)
 		
 		query = '''insert into pubmed_Article(ArticleIds, ArticleKeywords, Abstract, Body, PubDate) values 
@@ -81,13 +76,21 @@ class DocumentLoader:
 	def _getInsertArticleTitleQueries(self, articleId, titles):
 		result = []
 		for title in titles:
-			_title = ''
-			tit = title.get('Title', None)
-			if tit != None:
-				_title = tit
+			_title = title.get('Title', '')
 			_title = self._validateAndQuote(_title)
 			query = '''insert into pubmed_Title(ArticleId, Title) values
 				(%d, %s)''' % (articleId, _title)
+			result.append(query)
+		return result
+
+	def _getInsertContributorQueries(self, articleId, contributors):
+		result = []
+		for contributor in contributors:
+			_type = self._validateAndQuote(contributor.get('ContribType', ''))
+			_surname = self._validateAndQuote(contributor.get('Surname', ''))
+			_given_names = self._validateAndQuote(contributor.get('GivenNames', ''))
+			query = '''insert into pubmed_Contributor(ArticleId, ContribType, Surname, GivenNames) values
+				(%d, %s, %s, %s)''' % (articleId, _type, _surname, _given_names)
 			result.append(query)
 		return result
 	
@@ -111,6 +114,9 @@ class DocumentLoader:
 			articleTitleQueries = self._getInsertArticleTitleQueries(articleId, content[5])
 			for articleTitleQuery in articleTitleQueries:
 				cur.execute(articleTitleQuery)
+			contributorQueries = self._getInsertContributorQueries(articleId, content[6])
+			for contributorQuery in contributorQueries:
+				cur.execute(contributorQuery)
 			conn.commit()
 			conn.close()
 	
@@ -195,7 +201,7 @@ class DocumentLoader:
 			entry = dict()
 			entry['ContribType'] = contributor.get('type', None)
 			entry['Surname'] = contributor.get('surname', None)
-			entry['GivenNames'] = contributor.get('GivenNames', None)
+			entry['GivenNames'] = contributor.get('given-names', None)
 			result.append(entry)
 		return result
 	
