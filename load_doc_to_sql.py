@@ -4,6 +4,8 @@
 import MySQLdb
 import unicodedata
 import os
+import pickle
+import time
 from patentparser.parser import Parser
 from datetime import datetime
 
@@ -33,8 +35,9 @@ class DocumentLoader:
 				content.append(self._getReferences(doc))
 				contents.append(content)
 			self._push_contents(contents)
-		except:
+		except Exception as inst:
 			print 'Exception while parsing.'
+			print inst
 			f = open(log_file, 'a')
 			f.write('Error while parsing. Batch below\n')
 			for doc in self.doc_list:
@@ -283,34 +286,46 @@ class DocumentLoader:
 			result.append(entry)
 		return result
 
-if __name__ == '__main__':
+if __name__ == '__main__':	
+	# Initialize file names
 	log_file = 'load_log.txt'
+	corpus_file_names = 'pubmed_file_list.txt'
+	remaining_files_pickle = 'remaining_files.pickle'
+	batch_size = 1000
+	# Log file to log if there is any exception
+	# Clear the log file first
 	open(log_file, 'w').close()
-	f = open('../../xml_file_list.txt')
-	total_files = len(f.readlines())
-	f.close()
+	# Check if a pickle file already exist for
+	# loading the remaining file to be processed
+	if os.path.exists(remaining_files_pickle):
+		f = open(remaining_files_pickle, 'rb')
+		input_file_list = pickle.load(f)
+		f.close()
+	# If pickle not available, load the file 
+	# list into a python list for processing
+	else:
+		f = open(corpus_file_names)
+		input_file_list = f.readlines()
+		# Eliminate the trailing '\n'
+		input_file_list = map(lambda x: x.replace('\n',''), input_file_list)
+		f.close()
+	# Process the input_file_list until it is empty
+	while len(input_file_list) > 0:
+		print 'Remaining files to process: ' + str(len(input_file_list))
+		# Pick first 1000 files from the input file list
+		# for the current batch
+		current_batch = input_file_list[:batch_size]
+		# Load the documents into the database
+		print 'Started to load ' + str(batch_size) + ' documents'
+		print 'Start time: ' + time.strftime('%H:%M:%S', time.localtime())
+		ld = DocumentLoader(current_batch, 'localhost', 'bharani', '', 'test')
+		ld.loadDocuments(log_file)
+		print 'End time: ' + time.strftime('%H:%M:%S', time.localtime())
+		# When done successfully, update the remaining files
+		# and the pickle file appropriately
+		input_file_list = input_file_list[batch_size:]
+		f = open(remaining_files_pickle, 'wb')
+		pickle.dump(input_file_list, f)
+		f.close()		
 	
-	ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
-	count = 0
-	batch_count = 0
-	total_batch = (total_files / 100) + 1
-	doc_path = '/Users/bharani/Documents/CSE507-CL/Project/PubmedCorpus'
-	file_list = []
-	for root, dirs, files in os.walk(doc_path):
-		for val in files:
-			if val.find('.xml') != -1:
-				count += 1
-				file_name = root + '/' + val
-				print '' + str(count) + ' of ' + str(total_files) + ' : ' + file_name
-				file_list.append(file_name)
-				if(len(file_list) >= 100):
-					batch_count += 1
-					print "Running batch " + str(batch_count) + " of " + str(total_batch)
-					ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
-					ld.loadDocuments(log_file)
-					file_list = []
-	print "Running batch " + str(batch_count) + " of " + str(total_batch)
-	ld = DocumentLoader(file_list, 'localhost', 'bharani', '', 'test')
-	ld.loadDocuments(log_file)
-	file_list = []
 				
