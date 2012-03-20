@@ -291,10 +291,7 @@ if __name__ == '__main__':
 	log_file = 'load_log.txt'
 	corpus_file_names = 'pubmed_file_list.txt'
 	remaining_files_pickle = 'remaining_files.pickle'
-	batch_size = 1000
-	# Log file to log if there is any exception
-	# Clear the log file first
-	open(log_file, 'w').close()
+	batch_size = 100
 	# Check if a pickle file already exist for
 	# loading the remaining file to be processed
 	if os.path.exists(remaining_files_pickle):
@@ -303,7 +300,12 @@ if __name__ == '__main__':
 		f.close()
 	# If pickle not available, load the file 
 	# list into a python list for processing
-	else:
+	else:		
+		# Log file to log if there is any exception
+		# Clear the log file first only if it is a
+		# fresh input. If an already existing pickle
+		# is used, log file is not cleared
+		open(log_file, 'w').close()
 		f = open(corpus_file_names)
 		input_file_list = f.readlines()
 		# Eliminate the trailing '\n'
@@ -317,15 +319,17 @@ if __name__ == '__main__':
 		current_batch = input_file_list[:batch_size]
 		# Load the documents into the database
 		print 'Started to load ' + str(batch_size) + ' documents'
-		print 'Start time: ' + time.strftime('%H:%M:%S', time.localtime())
+		print 'Started: (' + time.strftime('%H:%M:%S', time.localtime()) + ')...'
 		ld = DocumentLoader(current_batch, 'localhost', 'bharani', '', 'test')
 		ld.loadDocuments(log_file)
-		print 'End time: ' + time.strftime('%H:%M:%S', time.localtime())
+		print 'Done: (' + time.strftime('%H:%M:%S', time.localtime()) + ')'
 		# When done successfully, update the remaining files
 		# and the pickle file appropriately
 		input_file_list = input_file_list[batch_size:]
+		print 'Writing pickle file. DONOT INTERRUPT...'
 		f = open(remaining_files_pickle, 'wb')
 		pickle.dump(input_file_list, f)
-		f.close()		
+		f.close()
+		print 'Done!'
 	
 				
