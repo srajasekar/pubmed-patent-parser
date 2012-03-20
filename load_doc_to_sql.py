@@ -320,7 +320,7 @@ if __name__ == '__main__':
 		# Load the documents into the database
 		print 'Started to load ' + str(batch_size) + ' documents'
 		print 'Started: (' + time.strftime('%H:%M:%S', time.localtime()) + ')...'
-		ld = DocumentLoader(current_batch, 'localhost', 'bharani', '', 'test')
+		ld = DocumentLoader(current_batch, 'mysql1.cs.stonybrook.edu', 'yvijayakumar', '108112539', 'yvijayakumar')
 		ld.loadDocuments(log_file)
 		print 'Done: (' + time.strftime('%H:%M:%S', time.localtime()) + ')'
 		# When done successfully, update the remaining files
