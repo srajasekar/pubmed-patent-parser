@@ -6,6 +6,7 @@ import unicodedata
 import os
 import pickle
 import time
+import sys
 from patentparser.parser import Parser
 from datetime import datetime
 
@@ -23,6 +24,8 @@ class DocumentLoader:
 		# author : ajbharani
 		try:
 			contents = []
+			total_files = len(self.doc_list)
+			processed_count = 0
 			for doc in self.doc_list:
 				content = []
 				content.append(self._getArticleIds(doc))
@@ -34,6 +37,8 @@ class DocumentLoader:
 				content.append(self._getContributors(doc))
 				content.append(self._getReferences(doc))
 				contents.append(content)
+				processed_count += 1
+				print 'Processed file %d of %d' % (processed_count, total_files)
 			self._push_contents(contents)
 		except Exception as inst:
 			print 'Exception while parsing.'
@@ -151,10 +156,13 @@ class DocumentLoader:
 		# "Contributors": [{ContribType, Surname, GivenNames}, ...]
 		# "References": [{RefId, RefType, Source, Title, PubYear, PubIdType, PubId}, ...]
 		# "RefContributor": [{ContribType, Surname, GivenNames}, ...]
+		# To output upload count
+		upload_count = len(contents)
+		count = 1
+		conn = MySQLdb.connect(self.sql_host, self.sql_user, self.sql_password, self.sql_db)
+		cur = conn.cursor()
 		for content in contents:
-			articleQuery = self._getInsertArticleQuery(content[0], content[1], content[2], content[3], content[4])
-			conn = MySQLdb.connect(self.sql_host, self.sql_user, self.sql_password, self.sql_db)
-			cur = conn.cursor()
+			articleQuery = self._getInsertArticleQuery(content[0], content[1], content[2], content[3], content[4])			
 			cur.execute(articleQuery)
 			articleId = conn.insert_id()
 			articleTitleQueries = self._getInsertArticleTitleQueries(articleId, content[5])
@@ -169,9 +177,11 @@ class DocumentLoader:
 				referenceId = conn.insert_id()
 				refContributorQueries = self._getInsertRefContributorQueries(referenceId, contributors)
 				for refContributorQuery in refContributorQueries:
-					cur.execute(refContributorQuery)
-			conn.commit()
-			conn.close()
+					cur.execute(refContributorQuery)			
+			print 'Uploaded %d of %d files' % (count, upload_count)
+			count += 1
+		conn.commit()
+		conn.close()
 	
 	def _getArticleIds(self, filename):
 		# author : saran
@@ -291,7 +301,7 @@ if __name__ == '__main__':
 	log_file = 'load_log.txt'
 	corpus_file_names = 'pubmed_file_list.txt'
 	remaining_files_pickle = 'remaining_files.pickle'
-	batch_size = 100
+	batch_size = int(sys.argv[1])
 	# Check if a pickle file already exist for
 	# loading the remaining file to be processed
 	if os.path.exists(remaining_files_pickle):
