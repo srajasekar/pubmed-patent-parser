@@ -1,0 +1,7 @@
+README
+------
+
+Prerequisites for using these packages:
+
+1. MySQLdb
+2. topia.termextract
