@@ -39,6 +39,7 @@ class DocumentLoader:
 				contents.append(content)
 				processed_count += 1
 				print 'Processed file %d of %d' % (processed_count, total_files)
+				print 'File name: %s' % (doc) 
 			self._push_contents(contents)
 		except Exception as inst:
 			print 'Exception while parsing.'
