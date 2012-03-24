@@ -21,3 +21,6 @@ class TermExtractor(object):
 	def extract(self, string):
 		string = self._removeNonAscii(string)
 		return filter(self._removePuncts, self.extractor(string))
+
+	def __call__(self, string):
+		return self.extract(string)
