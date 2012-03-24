@@ -13,7 +13,7 @@ class TermExtractor(object):
 	def _removePuncts(self, string):
 		punct_list = ['.', ',', '(', ')', '{', '}', '...']
 		for punct in punct_list:
-			if string.count(punct) > 0:
+			if string[0].count(punct) > 0:
 				return False
 		else:
 			return True
