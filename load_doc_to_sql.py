@@ -342,5 +342,3 @@ if __name__ == '__main__':
 		pickle.dump(input_file_list, f)
 		f.close()
 		print 'Done!'
-	
-				
