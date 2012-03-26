@@ -8,6 +8,7 @@ create table pubmed_Article(
     Abstract long varchar,
     Body long varchar,
     PubDate Date,
+    Deleted integer not null default 0,
     constraint ARTPK1 primary key(Id)
 );
 
