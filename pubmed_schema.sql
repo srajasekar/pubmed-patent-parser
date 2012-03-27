@@ -12,6 +12,13 @@ create table pubmed_Article(
     constraint ARTPK1 primary key(Id)
 );
 
+-- pubmed_Keyword(ArticleId, Keyword)
+create table pubmed_Keyword (
+    ArticleId integer not null,
+    Keyword long varchar not null,
+    constraint KWDFK1 foreign key(ArticleId) references pubmed_Article(Id)
+);
+
 -- pubmed_Title(ArtilceId, Title)
 create table pubmed_Title (
     ArticleId integer not null,
