@@ -86,6 +86,7 @@ if __name__ == '__main__':
 	while True:
 		remaining_articles = len(ks.articles)
 		if remaining_articles == 0:
+			print 'All keywords uploaded successfully.'
 			break
 		print '(%s) Remaining articles to process: %d' % (time.strftime('%H:%M:%S', time.localtime()), remaining_articles)
 		print '(%s) Updating keywords' % (time.strftime('%H:%M:%S', time.localtime()))
