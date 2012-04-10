@@ -24,7 +24,7 @@ class KeywordSplitter(object):
 	
 	def createDump(self):
 		conn = MySQLdb.connect(self.url, self.username, self.password, self.db)
-		query = 'select id, articlekeywords from pubmed_article where deleted = 0 order by id'
+		query = 'select id, geniakeywords from pubmed_article where deleted = 0 order by id'
 		cur = conn.cursor()
 		cur.execute(query)
 		self.articles = []
@@ -64,7 +64,7 @@ class KeywordSplitter(object):
 		
 	def genKeywordQueries(self):
 		self.keywordQueries = []
-		query = '''insert into pubmed_Keyword(ArticleId, Keyword) values (%d, '%s')'''
+		query = '''insert into pubmed_GeniaKeyword(ArticleId, Keyword) values (%d, '%s')'''
 		for article in self.current_batch:
 			for keyword in article['Keywords']:
 				self.keywordQueries.append(query % (article['Id'], keyword))
@@ -78,7 +78,7 @@ class KeywordSplitter(object):
 		conn.close()
 	
 if __name__ == '__main__':
-	ks = KeywordSplitter('mysql1.cs.stonybrook.edu', 'yvijayakumar', '108112539', 'yvijayakumar', 'pKeywords.pickle', int(sys.argv[1]))
+	ks = KeywordSplitter('mysql1.cs.stonybrook.edu', 'yvijayakumar', '108112539', 'yvijayakumar', 'geniaKeywords.pickle', int(sys.argv[1]))
 	if ks.isDumpAvailable():
 		ks.loadDump()
 	else:
